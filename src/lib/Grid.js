@@ -16,15 +16,6 @@ class Grid {
         return this.#height;
     }
 
-    #tileWidth;
-    get tileWidth() {
-        return this.#tileWidth;
-    }
-    #tileHeight;
-    get tileHeight() {
-        return this.#tileHeight;
-    }
-
     get cells() {
         return this.#grid.flat();
     }
@@ -59,9 +50,6 @@ class Grid {
     attachCanvas(canvas) {
         this.#canvas = canvas;
         this.#context = canvas.getContext("2d");
-
-        this.#tileWidth = canvas.width / this.width;
-        this.#tileHeight = canvas.height / this.height;
 
         Tile.fullWidth = (canvas.width - gap * (this.width + 1)) / this.width;
         Tile.fullHeight = (canvas.height - gap * (this.height + 1)) / this.height;
