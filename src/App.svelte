@@ -1,5 +1,5 @@
 <script>
-  import Canva from "./lib/canva.svelte";
+  import Canva from "./lib/Canvas.svelte";
 </script>
 
 <main>
