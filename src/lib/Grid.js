@@ -3,6 +3,7 @@ import Tile from "./Tile.js";
 
 const gridWidth = 4;
 const gridHeight = 4;
+const gap = 5;
 
 class Grid {
   #grid;
@@ -62,10 +63,10 @@ class Grid {
     this.#tileWidth = canvas.width / this.width;
     this.#tileHeight = canvas.height / this.height;
 
-    Tile.fullWidth = canvas.width / this.width;
-    Tile.fullHeight = canvas.height / this.height;
-    Tile.spawnWidth = Tile.fullWidth / 2;
-    Tile.spawnHeight = Tile.fullHeight / 2;
+    Tile.fullWidth = (canvas.width - gap * (this.width + 1)) / this.width;
+    Tile.fullHeight = (canvas.height - gap * (this.height + 1)) / this.height;
+    Tile.spawnWidth = Tile.fullWidth / 3;
+    Tile.spawnHeight = Tile.fullHeight / 3;
 
     return true;
   }
@@ -136,15 +137,33 @@ class Grid {
 
     this.#context.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
 
+    // background:
+    this.#context.fillStyle = "rgb(26, 26, 30)";
+    this.#context.fillRect(0, 0, this.#canvas.width, this.#canvas.height);
+
+    // tile slots:
+    for (let x = 0; x < this.width; x++) {
+        for (let y = 0; y < this.height; y++) {
+            const xRect = x * Tile.fullWidth + gap * (x + 1);
+            const yRect = y * Tile.fullHeight + gap * (y + 1);
+            this.#context.fillStyle = "rgb(86, 86, 86)";
+            this.#context.beginPath();
+            this.#context.roundRect(xRect, yRect, Tile.fullWidth, Tile.fullHeight, gap * 2);
+            this.#context.fill();
+        }
+    }
+
     const { tileWidth, tileHeight } = this;
 
     for (let { x, y, tile } of this.filledCells) {
       const { width, height, style } = tile;
 
-      const xRect = x * Tile.fullWidth + (Tile.fullWidth - width) / 2;
-      const yRect = y * Tile.fullHeight + (Tile.fullHeight - width) / 2;
+      const xRect = x * Tile.fullWidth + gap * (x + 1) + (Tile.fullWidth - width) / 2;
+      const yRect = y * Tile.fullHeight + gap * (y + 1) + (Tile.fullHeight - width) / 2;
       this.#context.fillStyle = style.bgColor;
-      this.#context.fillRect(xRect, yRect, width, height);
+      this.#context.beginPath();
+      this.#context.roundRect(xRect, yRect, width, height, gap * 2)
+      this.#context.fill();
 
       const xText = x * tileWidth + tileWidth / 2;
       const yText = y * tileWidth + tileHeight / 2;
@@ -155,14 +174,6 @@ class Grid {
       this.#context.globalAlpha = width / Tile.fullWidth;
       this.#context.fillText(tile.num, xText, yText, tileWidth);
       this.#context.globalAlpha = 1; // cancels out text opacity
-    }
-
-    for (let { x, y } of this.emptyCells) {
-      const xRect = x * Tile.fullWidth;
-      const yRect = y * Tile.fullHeight;
-
-      this.#context.fillStyle = "rgb(26, 26, 30)";
-      this.#context.fillRect(xRect, yRect, Tile.fullWidth, Tile.fullHeight);
     }
 
     return true;
