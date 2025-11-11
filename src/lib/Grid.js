@@ -1,20 +1,22 @@
 import * as anims from "./anims.js";
 import Tile from "./Tile.js";
 
-const gridWidth = 4;
-const gridHeight = 4;
 const gap = 5;
 
 class Grid {
+    #canvas = undefined;
+    #context = undefined;
+
+    static cellsPerRow;
+    // static get cellsPerRow() {
+    //     return Grid.#cellsPerRow;
+    // }
+    static cellsPerCol;
+    // get cellsPerCol() {
+    //     return this.#cellsPerCol;
+    // }
     #grid;
-    #width;
-    get width() {
-        return this.#width;
-    }
-    #height;
-    get height() {
-        return this.#height;
-    }
+    #slots = [];
 
     get cells() {
         return this.#grid.flat();
@@ -34,25 +36,26 @@ class Grid {
             .join("-");
     }
 
-    #canvas = undefined;
-    #context = undefined;
-
-    constructor(width = gridWidth, height = gridHeight) {
-        this.#grid = new Array(height)
+    constructor(cellsPerRow = 4, cellsPerCol = 4) {
+        this.#grid = new Array(cellsPerCol)
             .fill()
             .map((_, y) =>
-                new Array(width).fill().map((_, x) => ({ x, y, tile: null }))
+                new Array(cellsPerRow).fill().map((_, x) => ({ x, y, tile: null }))
             );
-        this.#width = width;
-        this.#height = height;
+        Grid.cellsPerRow = cellsPerRow;
+        Grid.cellsPerCol = cellsPerCol;
+
+        for (let id = 0; id < cellsPerRow * cellsPerCol; id++) {
+            this.#slots.push(new Slot(id));
+        }
     }
 
     attachCanvas(canvas) {
         this.#canvas = canvas;
         this.#context = canvas.getContext("2d");
 
-        Tile.fullWidth = (canvas.width - gap * (this.width + 1)) / this.width;
-        Tile.fullHeight = (canvas.height - gap * (this.height + 1)) / this.height;
+        Tile.fullWidth = (canvas.width - gap * (Grid.cellsPerRow + 1)) / Grid.cellsPerRow;
+        Tile.fullHeight = (canvas.height - gap * (Grid.cellsPerCol + 1)) / Grid.cellsPerCol;
         Tile.spawnWidth = Tile.fullWidth / 3;
         Tile.spawnHeight = Tile.fullHeight / 3;
 
@@ -85,10 +88,10 @@ class Grid {
     moveTile(x, y, xDest, yDest) {
         if (this.#canvas === undefined) return false;
 
-        if (x < 0 || x >= this.width) return false;
-        if (y < 0 || y >= this.height) return false;
-        if (xDest < 0 || xDest >= this.width) return false;
-        if (yDest < 0 || yDest >= this.height) return false;
+        if (x < 0 || x >= Grid.cellsPerRow) return false;
+        if (y < 0 || y >= Grid.cellsPerCol) return false;
+        if (xDest < 0 || xDest >= Grid.cellsPerRow) return false;
+        if (yDest < 0 || yDest >= Grid.cellsPerCol) return false;
 
         const tile = this.#grid[y][x].tile;
 
@@ -103,10 +106,10 @@ class Grid {
     mergeTiles(x, y, xDest, yDest) {
         if (this.#canvas === undefined) return false;
 
-        if (x < 0 || x >= this.width) return false;
-        if (y < 0 || y >= this.height) return false;
-        if (xDest < 0 || xDest >= this.width) return false;
-        if (yDest < 0 || yDest >= this.height) return false;
+        if (x < 0 || x >= Grid.cellsPerRow) return false;
+        if (y < 0 || y >= Grid.cellsPerCol) return false;
+        if (xDest < 0 || xDest >= Grid.cellsPerRow) return false;
+        if (yDest < 0 || yDest >= Grid.cellsPerCol) return false;
 
         if (this.#grid[y][x].tile == null) return false;
         if (this.#grid[yDest][xDest].tile == null) return false;
@@ -129,18 +132,17 @@ class Grid {
         this.#context.fillStyle = "rgb(26, 26, 30)";
         this.#context.fillRect(0, 0, this.#canvas.width, this.#canvas.height);
 
-        // tile slots:
-        for (let x = 0; x < this.width; x++) {
-            for (let y = 0; y < this.height; y++) {
-                const xRect = x * Tile.fullWidth + gap * (x + 1);
-                const yRect = y * Tile.fullHeight + gap * (y + 1);
-                this.#context.fillStyle = "rgb(86, 86, 86)";
-                this.#context.beginPath();
-                this.#context.roundRect(xRect, yRect, Tile.fullWidth, Tile.fullHeight, gap * 2);
-                this.#context.fill();
-            }
+        // empty slots:
+        for (const { x, y } of this.#slots) {
+            const xRect = x * Tile.fullWidth + gap * (x + 1);
+            const yRect = y * Tile.fullHeight + gap * (y + 1);
+            this.#context.fillStyle = "rgb(86, 86, 86)";
+            this.#context.beginPath();
+            this.#context.roundRect(xRect, yRect, Tile.fullWidth, Tile.fullHeight, gap * 2);
+            this.#context.fill();
         }
 
+        // tiles:
         for (let { x, y, tile } of this.filledCells) {
             const { width, height, style } = tile;
 
@@ -260,4 +262,19 @@ class Grid {
     }
 }
 
-export default new Grid();
+class Slot {
+    #id
+    get id() { return this.#id; }
+    #x
+    get x() { return this.#x; }
+    #y
+    get y() { return this.#y; }
+
+    constructor(id = 0) {
+        this.#id = id;
+        this.#x = id % Grid.cellsPerRow;
+        this.#y = Math.floor(id / Grid.cellsPerRow);
+    }
+}
+
+export default new Grid(); // makes Grid a singleton
