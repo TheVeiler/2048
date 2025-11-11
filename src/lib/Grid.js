@@ -153,8 +153,6 @@ class Grid {
             }
         }
 
-        const { tileWidth, tileHeight } = this;
-
         for (let { x, y, tile } of this.filledCells) {
             const { width, height, style } = tile;
 
@@ -173,7 +171,7 @@ class Grid {
             this.#context.textAlign = "center";
             this.#context.textBaseline = "middle";
             this.#context.globalAlpha = width / Tile.fullWidth;
-            this.#context.fillText(tile.num, xText, yText, tileWidth);
+            this.#context.fillText(tile.num, xText, yText, width);
             this.#context.globalAlpha = 1; // cancels out text opacity
         }
 

@@ -2,6 +2,12 @@ import * as anims from "./anims.js";
 import grid from "./Grid.js";
 
 export default class Tile {
+    static #lastUsedId = -1;
+    #id;
+    get id() {
+        return this.#id;
+    }
+
     width;
     height;
 
@@ -77,6 +83,9 @@ export default class Tile {
     static fullHeight;
 
     constructor(num = Math.random() >= 0.9 ? 4 : 2) {
+        this.#id = Tile.#lastUsedId + 1;
+        Tile.#lastUsedId += 1;
+
         this.width = Tile.spawnWidth;
         this.height = Tile.spawnHeight;
         this.#num = num;

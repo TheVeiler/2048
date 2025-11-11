@@ -7,15 +7,19 @@
     function keyboardHandler(ev) {
         switch(ev.keyCode) {
             case 37:
+                ev.preventDefault();
                 grid.slideLeft();
                 break;
             case 38:
+                ev.preventDefault();
                 grid.slideUp();
                 break;
             case 39:
+                ev.preventDefault();
                 grid.slideRight();
                 break;
             case 40:
+                ev.preventDefault();
                 grid.slideDown();
                 break;
         }
@@ -31,7 +35,7 @@
     }
 </script>
 
-<svelte:window on:keydown|preventDefault={keyboardHandler} />
+<svelte:window on:keydown={keyboardHandler} />
 
 <canvas width="400" height="400" use:initCanvas></canvas>
 
