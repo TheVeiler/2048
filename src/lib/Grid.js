@@ -6,271 +6,272 @@ const gridHeight = 4;
 const gap = 5;
 
 class Grid {
-  #grid;
-  #width;
-  get width() {
-    return this.#width;
-  }
-  #height;
-  get height() {
-    return this.#height;
-  }
-
-  #tileWidth;
-  get tileWidth() {
-    return this.#tileWidth;
-  }
-  #tileHeight;
-  get tileHeight() {
-    return this.#tileHeight;
-  }
-
-  get cells() {
-    return this.#grid.flat();
-  }
-  get emptyCells() {
-    return this.cells.filter((cell) => cell.tile === null);
-  }
-  get filledCells() {
-    return this.cells.filter((cell) => cell.tile !== null);
-  }
-
-  get state() {
-    return this.#grid
-      .map((row) =>
-        row.map((cell) => (cell.tile === null ? 0 : cell.tile.num)).join("")
-      )
-      .join("-");
-  }
-
-  #canvas = undefined;
-  #context = undefined;
-
-  constructor(width = gridWidth, height = gridHeight) {
-    this.#grid = new Array(height)
-      .fill()
-      .map((_, y) =>
-        new Array(width).fill().map((_, x) => ({ x, y, tile: null }))
-      );
-    this.#width = width;
-    this.#height = height;
-  }
-
-  attachCanvas(canvas) {
-    this.#canvas = canvas;
-    this.#context = canvas.getContext("2d");
-
-    this.#tileWidth = canvas.width / this.width;
-    this.#tileHeight = canvas.height / this.height;
-
-    Tile.fullWidth = (canvas.width - gap * (this.width + 1)) / this.width;
-    Tile.fullHeight = (canvas.height - gap * (this.height + 1)) / this.height;
-    Tile.spawnWidth = Tile.fullWidth / 3;
-    Tile.spawnHeight = Tile.fullHeight / 3;
-
-    return true;
-  }
-
-  getCol(x) {
-    return this.#grid.map((row) => row[x]);
-  }
-
-  getRow(y) {
-    return this.#grid[y];
-  }
-
-  getRandomEmptyCell() {
-    const emptyCells = this.cells.filter((cell) => cell.tile === null);
-    const randomIndex = Math.floor(Math.random() * emptyCells.length);
-    return emptyCells[randomIndex];
-  }
-
-  addTile(x, y, tile) {
-    if (this.#canvas === undefined) return false;
-
-    if (this.#grid[y][x].tile === null) {
-      this.#grid[y][x].tile = tile;
-      return true;
+    #grid;
+    #width;
+    get width() {
+        return this.#width;
     }
-  }
+    #height;
+    get height() {
+        return this.#height;
+    }
 
-  moveTile(x, y, xDest, yDest) {
-    if (this.#canvas === undefined) return false;
+    #tileWidth;
+    get tileWidth() {
+        return this.#tileWidth;
+    }
+    #tileHeight;
+    get tileHeight() {
+        return this.#tileHeight;
+    }
 
-    if (x < 0 || x >= this.width) return false;
-    if (y < 0 || y >= this.height) return false;
-    if (xDest < 0 || xDest >= this.width) return false;
-    if (yDest < 0 || yDest >= this.height) return false;
+    get cells() {
+        return this.#grid.flat();
+    }
+    get emptyCells() {
+        return this.cells.filter((cell) => cell.tile === null);
+    }
+    get filledCells() {
+        return this.cells.filter((cell) => cell.tile !== null);
+    }
 
-    const tile = this.#grid[y][x].tile;
+    get state() {
+        return this.#grid
+            .map((row) =>
+                row.map((cell) => (cell.tile === null ? 0 : cell.tile.num)).join("")
+            )
+            .join("-");
+    }
 
-    this.#grid[y][x].tile = null;
-    this.#grid[yDest][xDest].tile = tile;
+    #canvas = undefined;
+    #context = undefined;
 
-    //anims.tileMoving(this.#grid[y][x], { x: xDest, y: yDest });
+    constructor(width = gridWidth, height = gridHeight) {
+        this.#grid = new Array(height)
+            .fill()
+            .map((_, y) =>
+                new Array(width).fill().map((_, x) => ({ x, y, tile: null }))
+            );
+        this.#width = width;
+        this.#height = height;
+    }
 
-    return true;
-  }
+    attachCanvas(canvas) {
+        this.#canvas = canvas;
+        this.#context = canvas.getContext("2d");
 
-  mergeTiles(x, y, xDest, yDest) {
-    if (this.#canvas === undefined) return false;
+        this.#tileWidth = canvas.width / this.width;
+        this.#tileHeight = canvas.height / this.height;
 
-    if (x < 0 || x >= this.width) return false;
-    if (y < 0 || y >= this.height) return false;
-    if (xDest < 0 || xDest >= this.width) return false;
-    if (yDest < 0 || yDest >= this.height) return false;
+        Tile.fullWidth = (canvas.width - gap * (this.width + 1)) / this.width;
+        Tile.fullHeight = (canvas.height - gap * (this.height + 1)) / this.height;
+        Tile.spawnWidth = Tile.fullWidth / 3;
+        Tile.spawnHeight = Tile.fullHeight / 3;
 
-    if (this.#grid[y][x].tile == null) return false;
-    if (this.#grid[yDest][xDest].tile == null) return false;
+        return true;
+    }
 
-    if (this.#grid[y][x].tile.num !== this.#grid[yDest][xDest].tile.num)
-      return false;
+    getCol(x) {
+        return this.#grid.map((row) => row[x]);
+    }
 
-    this.#grid[y][x].tile = null;
-    this.#grid[yDest][xDest].tile.double();
+    getRow(y) {
+        return this.#grid[y];
+    }
 
-    return true;
-  }
+    getRandomEmptyCell() {
+        const emptyCells = this.cells.filter((cell) => cell.tile === null);
+        const randomIndex = Math.floor(Math.random() * emptyCells.length);
+        return emptyCells[randomIndex];
+    }
 
-  draw() {
-    if (this.#canvas === undefined) return false;
+    addTile(x, y, tile) {
+        if (this.#canvas === undefined) return false;
 
-    this.#context.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+        if (this.#grid[y][x].tile === null) {
+            this.#grid[y][x].tile = tile;
+            return true;
+        }
+    }
 
-    // background:
-    this.#context.fillStyle = "rgb(26, 26, 30)";
-    this.#context.fillRect(0, 0, this.#canvas.width, this.#canvas.height);
+    moveTile(x, y, xDest, yDest) {
+        if (this.#canvas === undefined) return false;
 
-    // tile slots:
-    for (let x = 0; x < this.width; x++) {
-        for (let y = 0; y < this.height; y++) {
-            const xRect = x * Tile.fullWidth + gap * (x + 1);
-            const yRect = y * Tile.fullHeight + gap * (y + 1);
-            this.#context.fillStyle = "rgb(86, 86, 86)";
+        if (x < 0 || x >= this.width) return false;
+        if (y < 0 || y >= this.height) return false;
+        if (xDest < 0 || xDest >= this.width) return false;
+        if (yDest < 0 || yDest >= this.height) return false;
+
+        const tile = this.#grid[y][x].tile;
+
+        this.#grid[y][x].tile = null;
+        this.#grid[yDest][xDest].tile = tile;
+
+        //anims.tileMoving(this.#grid[y][x], { x: xDest, y: yDest });
+
+        return true;
+    }
+
+    mergeTiles(x, y, xDest, yDest) {
+        if (this.#canvas === undefined) return false;
+
+        if (x < 0 || x >= this.width) return false;
+        if (y < 0 || y >= this.height) return false;
+        if (xDest < 0 || xDest >= this.width) return false;
+        if (yDest < 0 || yDest >= this.height) return false;
+
+        if (this.#grid[y][x].tile == null) return false;
+        if (this.#grid[yDest][xDest].tile == null) return false;
+
+        if (this.#grid[y][x].tile.num !== this.#grid[yDest][xDest].tile.num)
+            return false;
+
+        this.#grid[y][x].tile = null;
+        this.#grid[yDest][xDest].tile.double();
+
+        return true;
+    }
+
+    draw() {
+        if (this.#canvas === undefined) return false;
+
+        this.#context.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+
+        // background:
+        this.#context.fillStyle = "rgb(26, 26, 30)";
+        this.#context.fillRect(0, 0, this.#canvas.width, this.#canvas.height);
+
+        // tile slots:
+        for (let x = 0; x < this.width; x++) {
+            for (let y = 0; y < this.height; y++) {
+                const xRect = x * Tile.fullWidth + gap * (x + 1);
+                const yRect = y * Tile.fullHeight + gap * (y + 1);
+                this.#context.fillStyle = "rgb(86, 86, 86)";
+                this.#context.beginPath();
+                this.#context.roundRect(xRect, yRect, Tile.fullWidth, Tile.fullHeight, gap * 2);
+                this.#context.fill();
+            }
+        }
+
+        const { tileWidth, tileHeight } = this;
+
+        for (let { x, y, tile } of this.filledCells) {
+            const { width, height, style } = tile;
+
+            const xRect = x * Tile.fullWidth + gap * (x + 1) + (Tile.fullWidth - width) / 2;
+            const yRect = y * Tile.fullHeight + gap * (y + 1) + (Tile.fullHeight - width) / 2;
+            this.#context.fillStyle = style.bgColor;
             this.#context.beginPath();
-            this.#context.roundRect(xRect, yRect, Tile.fullWidth, Tile.fullHeight, gap * 2);
+            this.#context.roundRect(xRect, yRect, width, height, gap * 2)
             this.#context.fill();
+
+            const xText = xRect + width / 2;
+            const yText = yRect + height / 2;
+
+            this.#context.fillStyle = style.color;
+            this.#context.font = style.fontSize + " sans-serif";
+            this.#context.textAlign = "center";
+            this.#context.textBaseline = "middle";
+            this.#context.globalAlpha = width / Tile.fullWidth;
+            this.#context.fillText(tile.num, xText, yText, tileWidth);
+            this.#context.globalAlpha = 1; // cancels out text opacity
         }
+
+        return true;
     }
 
-    const { tileWidth, tileHeight } = this;
+    slideUp() {
+        if (this.#canvas === undefined) return false;
 
-    for (let { x, y, tile } of this.filledCells) {
-      const { width, height, style } = tile;
+        const fromTopToBottom = (cellA, cellB) => cellA.y - cellB.y;
 
-      const xRect = x * Tile.fullWidth + gap * (x + 1) + (Tile.fullWidth - width) / 2;
-      const yRect = y * Tile.fullHeight + gap * (y + 1) + (Tile.fullHeight - width) / 2;
-      this.#context.fillStyle = style.bgColor;
-      this.#context.beginPath();
-      this.#context.roundRect(xRect, yRect, width, height, gap * 2)
-      this.#context.fill();
+        let state;
+        do {
+            state = this.state;
 
-      const xText = x * tileWidth + tileWidth / 2;
-      const yText = y * tileWidth + tileHeight / 2;
-      this.#context.fillStyle = style.color;
-      this.#context.font = style.fontSize + " sans-serif";
-      this.#context.textAlign = "center";
-      this.#context.textBaseline = "middle";
-      this.#context.globalAlpha = width / Tile.fullWidth;
-      this.#context.fillText(tile.num, xText, yText, tileWidth);
-      this.#context.globalAlpha = 1; // cancels out text opacity
+            for (let { x, y, tile } of this.filledCells.sort(fromTopToBottom)) {
+                if (this.#grid[y - 1]?.[x].tile === null) {
+                    this.moveTile(x, y, x, y - 1);
+                }
+                if (this.#grid[y - 1]?.[x].tile.num === tile.num) {
+                    this.mergeTiles(x, y, x, y - 1);
+                }
+            }
+        } while (state !== this.state);
+
+        new Tile();
+
+        return true;
     }
+    slideRight() {
+        if (this.#canvas === undefined) return false;
 
-    return true;
-  }
+        const fromRightToLeft = (cellA, cellB) => cellB.x - cellA.x;
 
-  slideUp() {
-    if (this.#canvas === undefined) return false;
+        let state;
+        do {
+            state = this.state;
 
-    const fromTopToBottom = (cellA, cellB) => cellA.y - cellB.y;
+            for (let { x, y, tile } of this.filledCells.sort(fromRightToLeft)) {
+                if (this.#grid[y][x + 1]?.tile === null) {
+                    this.moveTile(x, y, x + 1, y);
+                }
+                if (this.#grid[y][x + 1]?.tile.num === tile.num) {
+                    this.mergeTiles(x, y, x + 1, y);
+                }
+            }
+        } while (state !== this.state);
 
-    let state;
-    do {
-      state = this.state;
+        new Tile();
 
-      for (let { x, y, tile } of this.filledCells.sort(fromTopToBottom)) {
-        if (this.#grid[y - 1]?.[x].tile === null) {
-          this.moveTile(x, y, x, y - 1);
-        }
-        if (this.#grid[y - 1]?.[x].tile.num === tile.num) {
-          this.mergeTiles(x, y, x, y - 1);
-        }
-      }
-    } while (state !== this.state);
+        return true;
+    }
+    slideDown() {
+        if (this.#canvas === undefined) return false;
 
-    new Tile();
+        const fromBottomToTop = (cellA, cellB) => cellB.y - cellA.y;
 
-    return true;
-  }
-  slideRight() {
-    if (this.#canvas === undefined) return false;
+        let state;
+        do {
+            state = this.state;
 
-    const fromRightToLeft = (cellA, cellB) => cellB.x - cellA.x;
+            for (let { x, y, tile } of this.filledCells.sort(fromBottomToTop)) {
+                if (this.#grid[y + 1]?.[x].tile === null) {
+                    this.moveTile(x, y, x, y + 1);
+                }
+                if (this.#grid[y + 1]?.[x].tile.num === tile.num) {
+                    this.mergeTiles(x, y, x, y + 1);
+                }
+            }
+        } while (state !== this.state);
 
-    let state;
-    do {
-      state = this.state;
+        new Tile();
 
-      for (let { x, y, tile } of this.filledCells.sort(fromRightToLeft)) {
-        if (this.#grid[y][x + 1]?.tile === null) {
-          this.moveTile(x, y, x + 1, y);
-        }
-        if (this.#grid[y][x + 1]?.tile.num === tile.num) {
-          this.mergeTiles(x, y, x + 1, y);
-        }
-      }
-    } while (state !== this.state);
+        return true;
+    }
+    slideLeft() {
+        if (this.#canvas === undefined) return false;
 
-    new Tile();
+        const fromLeftToRight = (cellA, cellB) => cellA.x - cellB.x;
 
-    return true;
-  }
-  slideDown() {
-    if (this.#canvas === undefined) return false;
+        let state;
+        do {
+            state = this.state;
 
-    const fromBottomToTop = (cellA, cellB) => cellB.y - cellA.y;
+            for (let { x, y, tile } of this.filledCells.sort(fromLeftToRight)) {
+                if (this.#grid[y][x - 1]?.tile === null) {
+                    this.moveTile(x, y, x - 1, y);
+                }
+                if (this.#grid[y][x - 1]?.tile.num === tile.num) {
+                    this.mergeTiles(x, y, x - 1, y);
+                }
+            }
+        } while (state !== this.state);
 
-    let state;
-    do {
-      state = this.state;
+        new Tile();
 
-      for (let { x, y, tile } of this.filledCells.sort(fromBottomToTop)) {
-        if (this.#grid[y + 1]?.[x].tile === null) {
-          this.moveTile(x, y, x, y + 1);
-        }
-        if (this.#grid[y + 1]?.[x].tile.num === tile.num) {
-          this.mergeTiles(x, y, x, y + 1);
-        }
-      }
-    } while (state !== this.state);
-
-    new Tile();
-
-    return true;
-  }
-  slideLeft() {
-    if (this.#canvas === undefined) return false;
-
-    const fromLeftToRight = (cellA, cellB) => cellA.x - cellB.x;
-
-    let state;
-    do {
-      state = this.state;
-
-      for (let { x, y, tile } of this.filledCells.sort(fromLeftToRight)) {
-        if (this.#grid[y][x - 1]?.tile === null) {
-          this.moveTile(x, y, x - 1, y);
-        }
-        if (this.#grid[y][x - 1]?.tile.num === tile.num) {
-          this.mergeTiles(x, y, x - 1, y);
-        }
-      }
-    } while (state !== this.state);
-
-    new Tile();
-
-    return true;
-  }
+        return true;
+    }
 }
 
 export default new Grid();
