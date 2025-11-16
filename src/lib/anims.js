@@ -1,7 +1,7 @@
 import { cubicBezier } from "./utils.js";
 import Tile from "./Tile.js";
 
-export function tileGrowing(target, duration = 200) {
+export function tileGrowing(target, duration = 100) {
     const startTime = new Date().getTime();
     const endTime = startTime + duration;
 
@@ -16,21 +16,23 @@ export function tileGrowing(target, duration = 200) {
     const deltaWidth = endWidth - startWidth;
     const deltaHeight = endHeight - startHeight;
 
-    const interval = setInterval((_) => {
-        let time = new Date().getTime();
+    return new Promise((resolve, reject) => {
+        const interval = setInterval((_) => {
+            let time = new Date().getTime();
 
-        if (time >= endTime) {
-            clearInterval(interval);
-            // locking definitive values:
-            target.width = endWidth;
-            target.height = endHeight;
-            return;
-        }
+            if (time >= endTime) {
+                clearInterval(interval);
+                // locking definitive values:
+                target.width = endWidth;
+                target.height = endHeight;
+                resolve(target);
+            }
 
-        const deltaTime = (time - startTime) / (endTime - startTime);
-        target.width = startWidth + deltaWidth * timingFunction(deltaTime);
-        target.height = startHeight + deltaHeight * timingFunction(deltaTime);
-    }, 5);
+            const deltaTime = (time - startTime) / (endTime - startTime);
+            target.width = startWidth + deltaWidth * timingFunction(deltaTime);
+            target.height = startHeight + deltaHeight * timingFunction(deltaTime);
+        }, 5);
+    });
 }
 
 export function tileMoving(
@@ -41,28 +43,30 @@ export function tileMoving(
     const startTime = new Date().getTime();
     const endTime = startTime + duration;
 
-    const timingFunction = cubicBezier(0.75, 0, 0, 1);
+    const timingFunction = cubicBezier(.42, 0, .58, 1);
 
     const start = { x: target.x, y: target.y };
 
     const deltaX = end.x - start.x;
     const deltaY = end.y - start.y;
 
-    const interval = setInterval((_) => {
-        let time = new Date().getTime();
+    return new Promise((resolve, reject) => {
+        const interval = setInterval((_) => {
+            let time = new Date().getTime();
 
-        if (time >= endTime) {
-            clearInterval(interval);
-            // locking definitive values:
-            target.x = end.x;
-            target.y = end.y;
-            return;
-        }
+            if (time >= endTime) {
+                clearInterval(interval);
+                // locking definitive values:
+                target.x = end.x;
+                target.y = end.y;
+                resolve(target);
+            }
 
-        const deltaTime = (time - startTime) / (endTime - startTime);
-        target.x = start.x + deltaX * timingFunction(deltaTime);
-        target.y = start.y + deltaY * timingFunction(deltaTime);
-    }, 5);
+            const deltaTime = (time - startTime) / (endTime - startTime);
+            target.x = start.x + deltaX * timingFunction(deltaTime);
+            target.y = start.y + deltaY * timingFunction(deltaTime);
+        }, 5);
+    });
 }
 
 export function tilesMerging(target, duration = 300) { }
