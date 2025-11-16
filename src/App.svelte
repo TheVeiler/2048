@@ -1,7 +1,7 @@
 <script>
-  import Canva from "./lib/Canvas.svelte";
+	import Canvas from './lib/Canvas.svelte';
 </script>
 
 <main>
-  <Canva />
+	<Canvas />
 </main>
