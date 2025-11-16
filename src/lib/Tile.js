@@ -1,5 +1,4 @@
-import * as anims from "./anims.js";
-import grid from "./Grid.js";
+import board from "./Board.js";
 
 export default class Tile {
     static #lastUsedId = -1;
@@ -10,6 +9,10 @@ export default class Tile {
 
     width;
     height;
+
+    x;
+    y;
+    slot;
 
     #num;
     get num() {
@@ -89,10 +92,15 @@ export default class Tile {
         this.width = Tile.spawnWidth;
         this.height = Tile.spawnHeight;
         this.#num = num;
-        const { x, y } = grid.getRandomEmptyCell();
-        grid.addTile(x, y, this);
 
-        anims.tileGrowing(this);
+        const { x, y, id: slotId } = board.getRandomEmptySlot();
+
+        this.x = x;
+        this.y = y;
+
+        board.addTile(this, slotId).catch((errorMessage) => {
+            console.error(errorMessage);
+        });
     }
 
     double() {
