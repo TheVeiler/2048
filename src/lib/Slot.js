@@ -1,5 +1,3 @@
-import board from './Board.js';
-
 export default class Slot {
 	#id;
 	get id() {
