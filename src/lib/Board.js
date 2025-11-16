@@ -254,7 +254,9 @@ class Board {
 
         Board.slide__after(movingTiles, disappearingTiles, upgradingTiles);
     }
-    static slideRight() { }
+    static slideRight() {
+        new Tile();
+    }
     static slideDown() {
         Board.requiresCanvas();
 
@@ -293,7 +295,9 @@ class Board {
 
         Board.slide__after(movingTiles, disappearingTiles, upgradingTiles);
     }
-    static slideLeft() { }
+    static slideLeft() {
+        new Tile();
+    }
 
     static slide__after(movingTiles, disappearingTiles, upgradingTiles) {
         if (movingTiles.length === 0) {
