@@ -1,7 +1,7 @@
-import board from './Board.js';
+import Board from './Board.js';
 
 export default class Tile {
-	static #lastUsedId = -1;
+	static #lastUsedId = 0;
 	#id;
 	get id() {
 		return this.#id;
@@ -86,25 +86,41 @@ export default class Tile {
 	static fullHeight;
 
 	constructor(num = Math.random() >= 0.9 ? 4 : 2) {
-		this.#id = Tile.#lastUsedId + 1;
-		Tile.#lastUsedId += 1;
+		this.#id = Tile.#lastUsedId++;
 
 		this.width = Tile.spawnWidth;
 		this.height = Tile.spawnHeight;
 		this.#num = num;
 
-		const { x, y, id: slotId } = board.getRandomEmptySlot();
+		const { x, y, id: slotId } = Board.getRandomEmptySlot();
 
 		this.x = x;
 		this.y = y;
 
-		board.addTile(this, slotId).catch((errorMessage) => {
+		Board.addTile(this, slotId).catch(errorMessage => {
 			console.error(errorMessage);
 		});
 	}
 
-	double() {
-		this.#num *= 2;
-		return true;
-	}
+    upgrade() {
+        return new Promise((resolve) => {
+            this.#num *= 2;
+            resolve(this);
+        })
+    }
+
+    move() {
+
+    }
+
+    delete() {
+        return new Promise((resolve) => {
+            Board.tiles = Board.tiles.filter(tile => tile.id !== this.id);
+            if (this.slot.tile.id === this.id) {
+                this.slot.tile = null;
+            }
+
+            resolve(true);
+        })
+    }
 }
