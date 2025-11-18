@@ -1,4 +1,5 @@
 import Board from './Board.js';
+import Score from './Score.js';
 
 export default class Tile {
 	static #lastUsedId = 0;
@@ -106,7 +107,7 @@ export default class Tile {
         return new Promise((resolve) => {
             this.#num *= 2;
             resolve(this);
-        })
+        }).then(_ => Score.add(this.#num));
     }
 
     move() {

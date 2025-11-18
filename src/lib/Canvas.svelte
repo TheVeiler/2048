@@ -1,37 +1,67 @@
 <script>
-	import board from './Board.js';
+	import Board from './Board.js';
+    import Score from './Score.js';
 	import Tile from './Tile.js';
 
 	const refreshRate = 1000 / 60;
 
+    let score = $state(0);
+    let disabled = $state(false);
+
 	function keyboardHandler(ev) {
+        if (disabled) return false;
+
 		switch (ev.keyCode) {
 			case 37:
 				ev.preventDefault();
-				board.slideLeft();
+				slide("left");
 				break;
 			case 38:
 				ev.preventDefault();
-				board.slideUp();
+				slide("up");
 				break;
 			case 39:
 				ev.preventDefault();
-				board.slideRight();
+				slide("right");
 				break;
 			case 40:
 				ev.preventDefault();
-				board.slideDown();
+				slide("down");
 				break;
 		}
 	}
 
+    function slide(direction) {
+        disabled = true;
+
+        switch (direction) {
+            case "up":
+				Board.slideUp();
+                break;
+            case "right":
+				Board.slideRight();
+                break;
+            case "down":
+				Board.slideDown();
+                break;
+            case "left":
+				Board.slideLeft();
+                break;
+        }
+
+        disabled = false;
+    }
+
 	let initCanvas = canvas => {
-		board.attachCanvas(canvas);
+		Board.attachCanvas(canvas);
 
 		new Tile();
 		new Tile();
 
-		const gameLoop = setInterval(() => board.draw(), refreshRate);
+		const gameLoop = setInterval(() => {
+            Board.draw();
+            score = Score.value;
+        }, refreshRate);
 	};
 </script>
 
@@ -41,17 +71,18 @@
 	<div id="score-container">
 		<p>
 			Score&nbsp;:
-			<span>0</span>
+			<span>{score}</span>
 		</p>
 	</div>
 
 	<canvas width="400" height="400" use:initCanvas></canvas>
 
-	<br /><button on:click={() => board.slideUp()}>slide up</button>
-	<br /><button on:click={() => board.slideLeft()}>slide left</button><button
-		on:click={() => board.slideRight()}>slide right</button
-	>
-	<br /><button on:click={() => board.slideDown()}>slide down</button>
+	<div id="controls">
+		<button {disabled} onclick={() => slide("up")}>slide up</button>
+		<button {disabled} onclick={() => slide("left")}>slide left</button>
+		<button {disabled} onclick={() => slide("right")}>slide right</button>
+		<button {disabled} onclick={() => slide("down")}>slide down</button>
+	</div>
 </div>
 
 <style>
@@ -59,6 +90,10 @@
 		--canvas-size: 400px;
 		--border-size: 10px;
 
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+		/* user-select: none; */
 		width: calc(var(--canvas-size) + 2 * var(--border-size));
 	}
 
@@ -70,8 +105,32 @@
 
 	canvas {
 		border: var(--border-size) solid blue;
+		display: block;
 		height: var(--canvas-size);
+        margin-bottom: 1rem;
 		width: var(--canvas-size);
-		/* user-select: none; */
+	}
+
+	#controls {
+		display: grid;
+		grid-template: repeat(3, 1fr) / repeat(7, 1fr);
+        width: 70%;
+
+        >:nth-child(1) {
+            grid-area: 1 / 3 / 2 / 6;
+        }
+        >:nth-child(2) {
+            grid-area: 2 / 1 / 3 / 4;
+        }
+        >:nth-child(3) {
+            grid-area: 2 / 5 / 3 / 8;
+        }
+        >:nth-child(4) {
+            grid-area: 3 / 3 / 4 / 6;
+        }
+
+        >:disabled {
+            background-color: red;
+        }
 	}
 </style>
