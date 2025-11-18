@@ -12,15 +12,25 @@ export default class Slot {
 		return this.#y;
 	}
 
-	tile;
+	tile = null;
 
-	isEmpty = (_) => this.tile === null;
-	isOccupied = (_) => this.tile !== null;
+	isEmpty = _ => this.tile === null;
+	isOccupied = _ => this.tile !== null;
 
 	constructor(id = 0, x = 0, y = 0) {
 		this.#id = id;
 		this.#x = x;
 		this.#y = y;
-		this.tile = null;
 	}
+
+	addTile(tile) {
+		this.tile = tile;
+		tile.slot = this;
+		return true;
+	}
+
+    static sortFromTopToBottom = (slotA, slotB) => slotA.y - slotB.y;
+    static sortFromRightToLeft = (slotA, slotB) => slotB.x - slotA.x;
+    static sortFromBottomToTop = (slotA, slotB) => slotB.y - slotA.y;
+    static sortFromLeftToRight = (slotA, slotB) => slotA.x - slotB.x;
 }

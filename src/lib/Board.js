@@ -13,24 +13,17 @@ class Board {
 	static slotsPerRow;
 	static slotsPerCol;
 
-	static #tiles = [];
-	static get tiles() {
-		return Board.#tiles;
-	}
+	static tiles = [];
 
 	static #slots = [];
 	static get slots() {
 		return Board.#slots;
 	}
 	static get emptySlots() {
-		return Board.slots.filter((slot) => slot.tile === null);
+		return Board.slots.filter(slot => slot.tile === null);
 	}
 	static get occupiedSlots() {
-		return Board.slots.filter((slot) => slot.tile !== null);
-	}
-
-	static get state() {
-		return Board.slots.map((slot) => (slot.tile === null ? 0 : slot.tile.num)).join('');
+		return Board.slots.filter(slot => slot.tile !== null);
 	}
 
 	constructor(cellsPerRow = 4, cellsPerCol = 4) {
@@ -68,19 +61,6 @@ class Board {
 		return true;
 	}
 
-	static getTopSlot(slot) {
-		return Board.slots[slot.id - Board.slotsPerRow];
-	}
-	static getRightSlot(slot) {
-		return Board.slots[slot.id + 1];
-	}
-	static getBottomSlot(slot) {
-		return Board.slots[slot.id + Board.slotsPerRow];
-	}
-	static getLeftSlot(slot) {
-		return Board.slots[slot.id - 1];
-	}
-
 	static getRandomEmptySlot() {
 		const randomIndex = Math.floor(Math.random() * Board.emptySlots.length);
 		return Board.emptySlots[randomIndex];
@@ -94,7 +74,7 @@ class Board {
 				reject(`Invalid slot id: ${slotId}.`);
 			}
 			if (Board.slots[slotId].isOccupied()) {
-				reject(`Slot ${slotId} already occupied.`);
+				reject(`Slot ${slotId} is already occupied.`);
 			}
 
 			Board.tiles.push(tile);
@@ -106,59 +86,6 @@ class Board {
 
 			resolve(tile);
 		});
-	}
-
-	static moveTile(startSlotId, endSlotId) {
-		Board.requiresCanvas();
-
-		return new Promise((resolve, reject) => {
-			if (startSlotId < 0 || startSlotId >= Board.slotsPerRow * Board.slotsPerCol) {
-				reject(`Invalid slot id: ${startSlotId}.`);
-			}
-			if (endSlotId < 0 || endSlotId >= Board.slotsPerRow * Board.slotsPerCol) {
-				reject(`Invalid slot id: ${endSlotId}.`);
-			}
-
-			const startSlot = Board.slots[startSlotId];
-			const endSlot = Board.slots[endSlotId];
-
-			const tile = startSlot.tile;
-			tile.x = endSlot.x;
-			tile.y = endSlot.y;
-
-			startSlot.tile = null;
-			endSlot.tile = tile;
-
-			resolve(tile);
-		});
-	}
-
-	static removeTiles(...tileIds) {
-		Board.requiresCanvas();
-
-		for (const tileId of tileIds) {
-			const tile = Board.tiles.find((tile) => tile.id === tileId);
-
-			tile.slot.tile = null;
-
-			Board.#tiles = Board.tiles.filter((tile) => tile.id !== tileId);
-		}
-
-		return true;
-	}
-
-	static upgradeTiles(...tileIds) {
-		Board.requiresCanvas();
-
-		for (const tileId of tileIds) {
-			const tile = Board.tiles.find((tile) => tile.id === tileId);
-
-			if (tile === undefined) return false;
-
-			tile.double();
-		}
-
-		return true;
 	}
 
 	static draw() {
@@ -205,102 +132,89 @@ class Board {
 	}
 
 	static slideUp() {
-		Board.requiresCanvas();
+		const sortingFunction = Slot.sortFromTopToBottom;
+		const condition = (x, y) => y > 0;
+		const step = (x, y) => [x, y - 1];
 
-		const fromTopToBottom = (slotA, slotB) => slotA.y - slotB.y;
-
-		const movingTiles = [];
-
-		const disappearingTiles = [];
-		const upgradingTiles = [];
-		const canUpgrade = (slot) => !upgradingTiles.includes(slot.id);
-
-		for (const tile of Board.tiles.sort(fromTopToBottom)) {
-			let { x, y } = tile;
-			let neighborSlot = Board.getTopSlot(tile.slot);
-
-			while (neighborSlot?.isEmpty()) {
-				tile.slot.tile = null;
-
-				tile.slot = neighborSlot;
-				neighborSlot.tile = tile;
-
-				y -= 1;
-				neighborSlot = Board.getTopSlot(tile.slot);
-			}
-
-			if (neighborSlot?.tile.num === tile.num && canUpgrade(neighborSlot)) {
-				y -= 1;
-				disappearingTiles.push(tile.id);
-				upgradingTiles.push(neighborSlot.tile.id);
-			}
-
-			if (y !== tile.y) {
-				movingTiles.push(anims.tileMoving(tile, { x, y }));
-			}
-		}
-
-		Board.slide__after(movingTiles, disappearingTiles, upgradingTiles);
+		Board.slide(sortingFunction, condition, step);
 	}
 	static slideRight() {
-		new Tile();
+		const sortingFunction = Slot.sortFromRightToLeft;
+		const condition = (x, y) => x < Board.slotsPerRow - 1;
+		const step = (x, y) => [x + 1, y];
+
+		Board.slide(sortingFunction, condition, step);
 	}
 	static slideDown() {
+		const sortingFunction = Slot.sortFromBottomToTop;
+		const condition = (x, y) => y < Board.slotsPerCol - 1;
+		const step = (x, y) => [x, y + 1];
+
+		Board.slide(sortingFunction, condition, step);
+	}
+	static slideLeft() {
+		const sortingFunction = Slot.sortFromLeftToRight;
+		const condition = (x, y) => x > 0;
+		const step = (x, y) => [x - 1, y];
+
+		Board.slide(sortingFunction, condition, step);
+	}
+	static slide(sortingFunction, condition, step) {
 		Board.requiresCanvas();
 
-		const fromBottomToTop = (slotA, slotB) => slotB.y - slotA.y; //? change required here
+		const previewBoard = [...Board.slots].map(_ => []);
+		const getSlot = (board, x, y) => {
+			return board[y * Board.slotsPerRow + x];
+		};
 
 		const movingTiles = [];
-
-		const disappearingTiles = [];
+		const vanishingTiles = [];
 		const upgradingTiles = [];
-		const canUpgrade = (slot) => !upgradingTiles.includes(slot.id);
 
-		for (const tile of Board.tiles.sort(fromBottomToTop)) {
-			//? change required here
+		for (const tile of Board.tiles.sort(sortingFunction)) {
 			let { x, y } = tile;
-			let neighborSlot = Board.getBottomSlot(tile.slot); //? change required here
 
-			while (neighborSlot?.isEmpty()) {
-				tile.slot.tile = null;
+			for (; condition(x, y); [x, y] = step(x, y)) {
+				const [nextX, nextY] = step(x, y);
+				const nextSlot = getSlot(previewBoard, nextX, nextY);
 
-				tile.slot = neighborSlot;
-				neighborSlot.tile = tile;
-
-				y += 1; //? change required here
-				neighborSlot = Board.getBottomSlot(tile.slot); //? change required here
+				if (nextSlot[1] !== undefined) break; // next slot is full
+				if (nextSlot[0] !== undefined && tile.num !== nextSlot[0].num) break; // next slot contains a tile with different num
 			}
 
-			if (neighborSlot?.tile.num === tile.num && canUpgrade(neighborSlot)) {
-				y += 1; //? change required here
-				disappearingTiles.push(tile.id);
-				upgradingTiles.push(neighborSlot.tile.id);
-			}
+			const destinationSlot = Board.slots[y * Board.slotsPerRow + x];
+			const previewSlot = getSlot(previewBoard, x, y);
 
-			if (y !== tile.y) {
-				//? change required here
+			tile.slot.tile = null;
+			tile.slot = destinationSlot;
+			destinationSlot.addTile(tile);
+
+			previewSlot.push(tile);
+
+			if (x !== tile.x || y !== tile.y) {
 				movingTiles.push(anims.tileMoving(tile, { x, y }));
+			}
+
+			if (previewSlot.length === 2) {
+				vanishingTiles.push(previewSlot[0]);
+				upgradingTiles.push(previewSlot[1]);
 			}
 		}
 
-		Board.slide__after(movingTiles, disappearingTiles, upgradingTiles);
-	}
-	static slideLeft() {
-		new Tile();
-	}
-
-	static slide__after(movingTiles, disappearingTiles, upgradingTiles) {
 		if (movingTiles.length === 0) {
+			//! dev only; normally return false
 			new Tile();
 			return true;
 		}
 
-		Promise.all(movingTiles).then(() => {
-			Board.removeTiles(...disappearingTiles);
-			Board.upgradeTiles(...upgradingTiles);
+		Promise.all(movingTiles)
+			.then(_ => Promise.all(vanishingTiles.map(tile => tile.delete())))
+			.then(_ => Promise.all(upgradingTiles.map(tile => tile.upgrade())))
+			.then(_ => {
+				new Tile();
 
-			new Tile();
-		});
+				return true;
+			});
 
 		return true;
 	}
