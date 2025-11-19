@@ -3,6 +3,9 @@ export default class Score {
 	static get value() {
 		return Score.#value;
 	}
+	static get textValue() {
+		return new Intl.NumberFormat(navigator.language).format(this.value);
+	}
 
 	constructor() {}
 
