@@ -1,5 +1,11 @@
-import Board from './Board.js';
-import Score from './Score.js';
+import type Slot from '$lib/entities/Slot';
+
+import Board from '$lib/entities/Board';
+import Score from '$lib/entities/Score';
+
+type TpowerOfTwo = 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048; //! not enough
+type Tstyle = { bgColor: string; color: string; fontSize: string };
+export type TsortingFunction = (tileA: Tile, tileB: Tile) => number;
 
 export default class Tile {
 	static #lastUsedId = 0;
@@ -13,14 +19,14 @@ export default class Tile {
 
 	x;
 	y;
-	slot;
+	slot: Slot | null = null;
 
-	#num;
+	#num: TpowerOfTwo;
 	get num() {
 		return this.#num;
 	}
 
-	#styleList = {
+	#styleList: Record<TpowerOfTwo, Tstyle> = {
 		2: {
 			bgColor: 'rgb(238,228,218)',
 			color: 'rgb(119,110,101)',
@@ -81,12 +87,12 @@ export default class Tile {
 		return this.#styleList[this.#num];
 	}
 
-	static spawnWidth;
-	static fullWidth;
-	static spawnHeight;
-	static fullHeight;
+	static spawnWidth: number;
+	static fullWidth: number;
+	static spawnHeight: number;
+	static fullHeight: number;
 
-	constructor(num = Math.random() >= 0.9 ? 4 : 2) {
+	constructor(num: TpowerOfTwo = Math.random() >= 0.9 ? 4 : 2) {
 		this.#id = Tile.#lastUsedId++;
 
 		this.width = Tile.spawnWidth;
@@ -98,30 +104,33 @@ export default class Tile {
 		this.x = x;
 		this.y = y;
 
-		Board.addTile(this, slotId).catch(errorMessage => {
+		Board.addTile(this, slotId).catch((errorMessage) => {
 			console.error(errorMessage);
 		});
 	}
 
-    upgrade() {
-        return new Promise((resolve) => {
-            this.#num *= 2;
-            resolve(this);
-        }).then(_ => Score.add(this.#num));
-    }
+	upgrade() {
+		return new Promise((resolve) => {
+			this.#num *= 2;
+			resolve(Score.add(this.#num));
+		});
+	}
 
-    move() {
+	move() {}
 
-    }
+	delete() {
+		return new Promise((resolve) => {
+			Board.tiles = Board.tiles.filter((tile) => tile.id !== this.id);
+			if (this.slot !== null) {
+				this.slot.removeTile(this);
+			}
 
-    delete() {
-        return new Promise((resolve) => {
-            Board.tiles = Board.tiles.filter(tile => tile.id !== this.id);
-            if (this.slot.tile.id === this.id) {
-                this.slot.tile = null;
-            }
+			resolve(true);
+		});
+	}
 
-            resolve(true);
-        })
-    }
+	static sortFromTopToBottom: TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.y - tileB.y;
+	static sortFromRightToLeft: TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.x - tileA.x;
+	static sortFromBottomToTop: TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.y - tileA.y;
+	static sortFromLeftToRight: TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.x - tileB.x;
 }

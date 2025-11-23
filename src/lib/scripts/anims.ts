@@ -1,7 +1,7 @@
-import { cubicBezier } from './utils.js';
-import Tile from './Tile.js';
+import { cubicBezier } from '$lib/scripts/utils';
+import Tile from '$lib/entities/Tile';
 
-export function tileGrowing(target, duration = 100) {
+export function tileGrowing(target: Tile, duration = 100) {
 	const startTime = new Date().getTime();
 	const endTime = startTime + duration;
 
@@ -17,8 +17,8 @@ export function tileGrowing(target, duration = 100) {
 	const deltaHeight = endHeight - startHeight;
 
 	return new Promise((resolve, reject) => {
-		const interval = setInterval(_ => {
-			let time = new Date().getTime();
+		const interval = setInterval(() => {
+			const time = new Date().getTime();
 
 			if (time >= endTime) {
 				clearInterval(interval);
@@ -26,7 +26,7 @@ export function tileGrowing(target, duration = 100) {
 				target.width = endWidth;
 				target.height = endHeight;
 				resolve(target);
-                // strangely, resolve doesnt stop the function
+				// strangely, resolve doesnt stop the function
 				return true;
 			}
 
@@ -37,7 +37,7 @@ export function tileGrowing(target, duration = 100) {
 	});
 }
 
-export function tileMoving(target, end = { x: 0, y: 0 }, duration = 300) {
+export function tileMoving(target: Tile, end = { x: 0, y: 0 }, duration = 300) {
 	const startTime = new Date().getTime();
 	const endTime = startTime + duration;
 
@@ -49,8 +49,8 @@ export function tileMoving(target, end = { x: 0, y: 0 }, duration = 300) {
 	const deltaY = end.y - start.y;
 
 	return new Promise((resolve, reject) => {
-		const interval = setInterval(_ => {
-			let time = new Date().getTime();
+		const interval = setInterval(() => {
+			const time = new Date().getTime();
 
 			if (time >= endTime) {
 				clearInterval(interval);
@@ -58,7 +58,7 @@ export function tileMoving(target, end = { x: 0, y: 0 }, duration = 300) {
 				target.x = end.x;
 				target.y = end.y;
 				resolve(target);
-                // strangely, resolve doesnt stop the function
+				// strangely, resolve doesnt stop the function
 				return true;
 			}
 
@@ -69,4 +69,4 @@ export function tileMoving(target, end = { x: 0, y: 0 }, duration = 300) {
 	});
 }
 
-export function tilesMerging(target, duration = 300) {}
+export function tilesMerging(target: Tile, duration = 300) {}

@@ -1,37 +1,37 @@
-<script>
-	import Board from './Board.js';
-	import Score from './Score.js';
-	import Tile from './Tile.js';
+<script lang="ts">
+	import Board from '$lib/entities/Board';
+	import Score from '$lib/entities/Score';
+	import Tile from '$lib/entities/Tile';
 
 	const refreshRate = 1000 / 60;
 
 	let score = $state({ value: 0, textValue: '0' });
 	let disabled = $state(false);
 
-	function keyboardHandler(ev) {
+	function keyboardHandler(ev: KeyboardEvent) {
 		if (disabled) return false;
 
-		switch (ev.keyCode) {
-			case 37:
+		switch (ev.key) {
+			case 'ArrowLeft':
 				ev.preventDefault();
 				slide('left');
 				break;
-			case 38:
+			case 'ArrowUp':
 				ev.preventDefault();
 				slide('up');
 				break;
-			case 39:
+			case 'ArrowRight':
 				ev.preventDefault();
 				slide('right');
 				break;
-			case 40:
+			case 'ArrowDown':
 				ev.preventDefault();
 				slide('down');
 				break;
 		}
 	}
 
-	function slide(direction) {
+	function slide(direction: 'up' | 'left' | 'right' | 'down') {
 		disabled = true;
 
 		switch (direction) {
@@ -52,7 +52,7 @@
 		disabled = false;
 	}
 
-	let initCanvas = canvas => {
+	let initCanvas = (canvas: HTMLCanvasElement) => {
 		Board.attachCanvas(canvas);
 
 		new Tile();

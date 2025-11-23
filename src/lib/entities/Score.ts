@@ -9,8 +9,8 @@ export default class Score {
 
 	constructor() {}
 
-	static add(points) {
-		return new Promise(resolve => {
+	static add(points: number) {
+		return new Promise((resolve) => {
 			Score.#value += points;
 			resolve(Score.value);
 		});
