@@ -1,5 +1,7 @@
 {
 	"name": "2048",
+    "author": "TheVeiler",
+    "description": "A basic proof of concept for a 2048 game in TypeScript.",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",

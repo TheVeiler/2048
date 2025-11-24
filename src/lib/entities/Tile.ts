@@ -3,10 +3,6 @@ import type Slot from '$lib/entities/Slot';
 import Board from '$lib/entities/Board';
 import Score from '$lib/entities/Score';
 
-type TpowerOfTwo = 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048; //! not enough
-type Tstyle = { bgColor: string; color: string; fontSize: string };
-export type TsortingFunction = (tileA: Tile, tileB: Tile) => number;
-
 export default class Tile {
 	static #lastUsedId = 0;
 	#id;
@@ -26,7 +22,7 @@ export default class Tile {
 		return this.#num;
 	}
 
-	#styleList: Record<TpowerOfTwo, Tstyle> = {
+	#styleList: Record<TpowerOfTwo, Tile.Tstyle> = {
 		2: {
 			bgColor: 'rgb(238,228,218)',
 			color: 'rgb(119,110,101)',
@@ -129,8 +125,8 @@ export default class Tile {
 		});
 	}
 
-	static sortFromTopToBottom: TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.y - tileB.y;
-	static sortFromRightToLeft: TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.x - tileA.x;
-	static sortFromBottomToTop: TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.y - tileA.y;
-	static sortFromLeftToRight: TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.x - tileB.x;
+	static sortFromTopToBottom: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.y - tileB.y;
+	static sortFromRightToLeft: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.x - tileA.x;
+	static sortFromBottomToTop: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.y - tileA.y;
+	static sortFromLeftToRight: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.x - tileB.x;
 }

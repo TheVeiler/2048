@@ -1,13 +1,8 @@
-import type { TsortingFunction } from '$lib/entities/Tile';
-
 import * as anims from '$lib/scripts/anims';
 import Slot from '$lib/entities/Slot';
 import Tile from '$lib/entities/Tile';
 
 const gap = 5;
-
-type TslideCondition = (x: number, y: number) => boolean;
-type TslideStep = (x: number, y: number) => number[];
 
 class Board {
 	static #hasInstance = false;
@@ -165,7 +160,7 @@ class Board {
 
 		Board.slide(sortingFunction, condition, step);
 	}
-	static slide(sortingFunction: TsortingFunction, condition: TslideCondition, step: TslideStep) {
+	static slide(sortingFunction: Tile.TsortingFunction, condition: Board.TslideCondition, step: Board.TslideStep) {
 		Board.requiresCanvas();
 
 		const previewBoard = [...Board.slots].map(() => []);
