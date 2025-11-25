@@ -10,6 +10,11 @@ class Board {
 	static #canvas: HTMLCanvasElement;
 	static #context: CanvasRenderingContext2D;
 
+	static #isLocked = false;
+	static get isLocked() {
+		return Board.#isLocked;
+	}
+
 	static slotsPerRow: number;
 	static slotsPerCol: number;
 
@@ -134,41 +139,48 @@ class Board {
 
 	static slideUp() {
 		const sortingFunction = Tile.sortFromTopToBottom;
-		const condition = (x: number, y: number) => y > 0;
-		const step = (x: number, y: number) => [x, y - 1];
+		const condition: Board.TslideCondition = (x, y) => y > 0;
+		const step: Board.TslideStep = (x, y) => [x, y - 1];
 
 		Board.slide(sortingFunction, condition, step);
 	}
 	static slideRight() {
 		const sortingFunction = Tile.sortFromRightToLeft;
-		const condition = (x: number, y: number) => x < Board.slotsPerRow - 1;
-		const step = (x: number, y: number) => [x + 1, y];
+		const condition: Board.TslideCondition = (x, y) => x < Board.slotsPerRow - 1;
+		const step: Board.TslideStep = (x, y) => [x + 1, y];
 
 		Board.slide(sortingFunction, condition, step);
 	}
 	static slideDown() {
 		const sortingFunction = Tile.sortFromBottomToTop;
-		const condition = (x: number, y: number) => y < Board.slotsPerCol - 1;
-		const step = (x: number, y: number) => [x, y + 1];
+		const condition: Board.TslideCondition = (x, y) => y < Board.slotsPerCol - 1;
+		const step: Board.TslideStep = (x, y) => [x, y + 1];
 
 		Board.slide(sortingFunction, condition, step);
 	}
 	static slideLeft() {
 		const sortingFunction = Tile.sortFromLeftToRight;
-		const condition = (x: number, y: number) => x > 0;
-		const step = (x: number, y: number) => [x - 1, y];
+		const condition: Board.TslideCondition = (x, y) => x > 0;
+		const step: Board.TslideStep = (x, y) => [x - 1, y];
 
 		Board.slide(sortingFunction, condition, step);
 	}
-	static slide(sortingFunction: Tile.TsortingFunction, condition: Board.TslideCondition, step: Board.TslideStep) {
+	static slide(
+		sortingFunction: Tile.TsortingFunction,
+		condition: Board.TslideCondition,
+		step: Board.TslideStep
+	) {
 		Board.requiresCanvas();
+
+		//? be careful not to get the game lock if returning prematurely:
+		Board.#isLocked = true;
 
 		const previewBoard = [...Board.slots].map(() => []);
 		const getSlot = (board: Tile[][], x: number, y: number) => {
 			return board[y * Board.slotsPerRow + x];
 		};
 
-		const movingTiles = [];
+		const movingTiles: Tile[] = [];
 		const vanishingTiles: Tile[] = [];
 		const upgradingTiles: Tile[] = [];
 
@@ -194,11 +206,13 @@ class Board {
 			tile.slot = destinationSlot;
 			destinationSlot.addTile(tile);
 
-			previewSlot.push(tile);
-
 			if (x !== tile.x || y !== tile.y) {
-				movingTiles.push(anims.tileMoving(tile, { x, y }));
+				tile.nextX = x;
+				tile.nextY = y;
+				movingTiles.push(tile);
 			}
+
+			previewSlot.push(tile);
 
 			if (previewSlot.length === 2) {
 				vanishingTiles.push(previewSlot[0]);
@@ -206,13 +220,20 @@ class Board {
 			}
 		}
 
-		if (movingTiles.length === 0) return false;
+		// cancel slide if resulting in no change:
+		if (movingTiles.length === 0) {
+			Board.#isLocked = false;
+			return false;
+		}
 
 		Promise.all(movingTiles)
+			.then(() => Promise.all(movingTiles.map((tile) => tile.move())))
 			.then(() => Promise.all(vanishingTiles.map((tile) => tile.delete())))
 			.then(() => Promise.all(upgradingTiles.map((tile) => tile.upgrade())))
 			.then(() => {
 				new Tile();
+
+				Board.#isLocked = false;
 
 				return true;
 			});

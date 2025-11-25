@@ -1,5 +1,6 @@
 import type Slot from '$lib/entities/Slot';
 
+import * as anims from '$lib/scripts/anims';
 import Board from '$lib/entities/Board';
 import Score from '$lib/entities/Score';
 
@@ -16,6 +17,9 @@ export default class Tile {
 	x;
 	y;
 	slot: Slot | null = null;
+
+	nextX;
+	nextY;
 
 	#num: TpowerOfTwo;
 	get num() {
@@ -99,23 +103,31 @@ export default class Tile {
 
 		this.x = x;
 		this.y = y;
+		this.nextX = x;
+		this.nextY = y;
 
 		Board.addTile(this, slotId).catch((errorMessage) => {
 			console.error(errorMessage);
 		});
 	}
 
+	move() {
+		return new Promise((resolve, reject) => {
+			const x = this.nextX;
+			const y = this.nextY;
+			resolve(anims.tileMoving(this, { x, y }));
+		});
+	}
+
 	upgrade() {
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			this.#num *= 2;
 			resolve(Score.add(this.#num));
 		});
 	}
 
-	move() {}
-
 	delete() {
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			Board.tiles = Board.tiles.filter((tile) => tile.id !== this.id);
 			if (this.slot !== null) {
 				this.slot.removeTile(this);
@@ -125,8 +137,8 @@ export default class Tile {
 		});
 	}
 
-	static sortFromTopToBottom: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.y - tileB.y;
-	static sortFromRightToLeft: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.x - tileA.x;
-	static sortFromBottomToTop: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileB.y - tileA.y;
-	static sortFromLeftToRight: Tile.TsortingFunction = (tileA: Tile, tileB: Tile) => tileA.x - tileB.x;
+	static sortFromTopToBottom: Tile.TsortingFunction = (tileA, tileB) => tileA.y - tileB.y;
+	static sortFromRightToLeft: Tile.TsortingFunction = (tileA, tileB) => tileB.x - tileA.x;
+	static sortFromBottomToTop: Tile.TsortingFunction = (tileA, tileB) => tileB.y - tileA.y;
+	static sortFromLeftToRight: Tile.TsortingFunction = (tileA, tileB) => tileA.x - tileB.x;
 }
