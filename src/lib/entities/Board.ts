@@ -172,7 +172,7 @@ class Board {
 	) {
 		Board.requiresCanvas();
 
-		//? be careful not to get the game lock if returning prematurely:
+		//? be careful not to get the game locked if returning without cancelling:
 		Board.#isLocked = true;
 
 		const previewBoard = [...Board.slots].map(() => []);
@@ -220,7 +220,7 @@ class Board {
 			}
 		}
 
-		// cancel slide if resulting in no change:
+		// cancels slide if resulting in no change:
 		if (movingTiles.length === 0) {
 			Board.#isLocked = false;
 			return false;

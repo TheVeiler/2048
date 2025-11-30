@@ -122,6 +122,7 @@ export default class Tile {
 	upgrade() {
 		return new Promise((resolve, reject) => {
 			this.#num *= 2;
+			// anims.tileUpgrading(this);
 			resolve(Score.add(this.#num));
 		});
 	}
