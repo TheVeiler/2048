@@ -1,5 +1,7 @@
 import type Tile from '$lib/entities/Tile';
 
+import Board from '$lib/entities/Board';
+
 export default class Slot {
 	#id;
 	get id() {
@@ -58,5 +60,24 @@ export default class Slot {
 
 			resolve(this);
 		});
+	}
+
+	getNeighbor(direction: 'top' | 'right' | 'bottom' | 'left') {
+		const height = Board.slotsPerCol;
+		const width = Board.slotsPerRow;
+
+		switch (direction) {
+			case 'top':
+				return this.y > 0 ? Board.slots[this.#id - width] : null;
+			case 'right':
+				return this.x < width - 1 ? Board.slots[this.#id + 1] : null;
+			case 'bottom':
+				return this.y < height - 1 ? Board.slots[this.#id + width] : null;
+			case 'left':
+				return this.x > 0 ? Board.slots[this.#id - 1] : null;
+			default:
+				console.error(`Expected direction, received: ${direction}.`);
+                return null;
+		}
 	}
 }

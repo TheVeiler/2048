@@ -5,7 +5,7 @@ import Tile from '$lib/entities/Tile';
 const gap = 5;
 
 class Board {
-	static #hasInstance = false;
+	static #instance: Board | null = null;
 
 	static #canvas: HTMLCanvasElement;
 	static #context: CanvasRenderingContext2D;
@@ -32,10 +32,10 @@ class Board {
 	}
 
 	constructor(cellsPerRow = 4, cellsPerCol = 4) {
-		if (Board.#hasInstance) {
+		if (Board.#instance) {
 			throw new Error('Singleton class Board already has an instance.');
 		}
-		Board.#hasInstance = true;
+		Board.#instance = this;
 
 		Board.slotsPerRow = cellsPerRow;
 		Board.slotsPerCol = cellsPerCol;
@@ -89,6 +89,25 @@ class Board {
 
 			Board.tiles.push(tile);
 			anims.tileGrowing(tile);
+
+			if (Board.emptySlots.length === 0) {
+				if (
+					Board.slots.every((slot) => {
+						const { num } = slot.tile as Tile;
+
+						const rightNeighbor = slot.getNeighbor('right');
+						const bottomNeighbor = slot.getNeighbor('bottom');
+
+						return (
+							(rightNeighbor === null || rightNeighbor.tile?.num !== num) &&
+							(bottomNeighbor === null || bottomNeighbor.tile?.num !== num)
+						);
+					})
+				) {
+					//! trigger game over
+					console.log('Game over');
+				}
+			}
 		});
 	}
 
