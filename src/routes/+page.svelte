@@ -4,7 +4,7 @@
 	import Controls from '$lib/components/Controls.svelte';
 
     const fps = (n: number) => n <= 0 ? 1000 : 1000 / n;
-	const refreshRate = fps(60);
+	const refreshRate = fps(120);
 
 	let { data } = $props();
 	let { bestScore } = data;

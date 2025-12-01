@@ -88,7 +88,7 @@ class Board {
 			slot.addTile(tile);
 
 			Board.tiles.push(tile);
-			anims.tileGrowing(tile);
+			anims.tileGrowing(tile); //! should it be waiting for the anim to end?
 
 			if (Board.emptySlots.length === 0) {
 				if (
@@ -248,10 +248,9 @@ class Board {
 		Promise.all(movingTiles)
 			.then(() => Promise.all(movingTiles.map((tile) => tile.move())))
 			.then(() => Promise.all(vanishingTiles.map((tile) => tile.delete())))
-			.then(() => Promise.all(upgradingTiles.map((tile) => tile.upgrade())))
+			// Upgrade tiles in the same time as adding a new one:
+			.then(() => Promise.all([...upgradingTiles.map((tile) => tile.upgrade()), new Tile()]))
 			.then(() => {
-				new Tile();
-
 				Board.#isLocked = false;
 
 				return true;

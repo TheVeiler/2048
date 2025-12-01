@@ -10,6 +10,6 @@ export function cubicBezier(x2: number, y2: number, x3: number, y3: number) {
 		const yt =
 			y1 * (1 - t) ** 3 + 3 * y2 * t * (1 - t) ** 2 + 3 * y3 * t ** 2 * (1 - t) + y4 * t ** 3;
 
-		return (xt * yt) / t || 0;
+		return { x: xt, y: yt };
 	};
 }

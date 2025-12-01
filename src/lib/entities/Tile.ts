@@ -115,21 +115,30 @@ export default class Tile {
 		return new Promise((resolve, reject) => {
 			const x = this.nextX;
 			const y = this.nextY;
-			resolve(anims.tileMoving(this, { x, y }));
+
+			anims
+				.tileMoving(this, { x, y })
+				// wait for the animation to end:
+				.then(() => resolve(true));
 		});
 	}
 
 	upgrade() {
 		return new Promise((resolve, reject) => {
 			this.#num *= 2;
-			// anims.tileUpgrading(this);
-			resolve(Score.add(this.#num));
+			Score.add(this.#num);
+
+			anims
+				.tileUpgrading(this)
+				// wait for the animation to end:
+				.then(() => resolve(true));
 		});
 	}
 
 	delete() {
 		return new Promise((resolve, reject) => {
 			Board.tiles = Board.tiles.filter((tile) => tile.id !== this.id);
+
 			if (this.slot !== null) {
 				this.slot.removeTile(this);
 			}
