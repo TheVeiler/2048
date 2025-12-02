@@ -1,18 +1,28 @@
-export default class Score {
-	static #value = 0;
-	static get value() {
-		return Score.#value;
+class Score {
+	static #instance: Score | null = null;
+
+	#value = 0;
+	get value() {
+		return this.#value;
 	}
-	static get textValue() {
+	get textValue() {
 		return new Intl.NumberFormat(navigator.language).format(this.value);
 	}
 
-	constructor() {}
+	constructor() {
+		if (Score.#instance) {
+			throw new Error('Singleton class Score already has an instance.');
+		}
+		Score.#instance = this;
+	}
 
-	static add(points: number) {
-		return new Promise((resolve) => {
-			Score.#value += points;
-			resolve(Score.value);
+	add(points: number) {
+		return new Promise((resolve, reject) => {
+			this.#value += points;
+			resolve(this.value);
 		});
 	}
 }
+
+const singleton = new Score();
+export default singleton;
