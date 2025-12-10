@@ -23,18 +23,24 @@
 	function keyboardHandler(ev: KeyboardEvent) {
 		switch (ev.key) {
 			case 'ArrowLeft':
+			case 'a': // QWERTY
+			case 'q': // AZERTY
 				ev.preventDefault();
 				slide('left');
 				break;
 			case 'ArrowUp':
+			case 'w': // QWERTY
+			case 'z': // AZERTY
 				ev.preventDefault();
 				slide('up');
 				break;
 			case 'ArrowRight':
+			case 'd':
 				ev.preventDefault();
 				slide('right');
 				break;
 			case 'ArrowDown':
+			case 's':
 				ev.preventDefault();
 				slide('down');
 				break;
